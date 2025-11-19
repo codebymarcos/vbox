@@ -1,13 +1,15 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tiny_http::{Method, Response, Server};
 
 use crate::scheduler::Scheduler;
 use crate::vfs::{Disk, FileSystem};
+use crate::vps::manager::VpsManager;
 
 pub struct HttpDashboard {
     scheduler: Arc<Scheduler>,
     fs: FileSystem,
     disk: Arc<dyn Disk + Send + Sync>,
+    vps_manager: Arc<Mutex<VpsManager>>,
 }
 
 impl HttpDashboard {
@@ -15,11 +17,13 @@ impl HttpDashboard {
         scheduler: Arc<Scheduler>,
         fs: FileSystem,
         disk: Arc<dyn Disk + Send + Sync>,
+        vps_manager: Arc<Mutex<VpsManager>>,
     ) -> Self {
         HttpDashboard {
             scheduler,
             fs,
             disk,
+            vps_manager,
         }
     }
 
@@ -55,6 +59,24 @@ impl HttpDashboard {
                         )
                         .unwrap(),
                     );
+                    request.respond(response).unwrap();
+                }
+                (&Method::Get, "/api/vps") => {
+                    let manager = self.vps_manager.lock().unwrap();
+                    let vps_list = manager.list_vps();
+                    let json = serde_json::to_string(&vps_list).unwrap();
+                    let response = Response::from_string(json).with_header(
+                        tiny_http::Header::from_bytes(
+                            &b"Content-Type"[..],
+                            &b"application/json"[..],
+                        )
+                        .unwrap(),
+                    );
+                    request.respond(response).unwrap();
+                }
+                (&Method::Post, "/api/vps") => {
+                    // TODO: Implementar criação de VPS via POST
+                    let response = Response::from_string("VPS creation not implemented yet").with_status_code(501);
                     request.respond(response).unwrap();
                 }
                 _ => {

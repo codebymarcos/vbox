@@ -1,7 +1,8 @@
 use crate::scheduler::Scheduler;
 use crate::vfs::{Disk, FileSystem};
+use crate::vps::manager::VpsManager;
 use std::io::{self, Write};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 mod commands;
 
@@ -9,6 +10,7 @@ pub struct Shell {
     fs: FileSystem,
     disk: Arc<dyn Disk + Send + Sync>,
     scheduler: Arc<Scheduler>,
+    vps_manager: Arc<Mutex<VpsManager>>,
     cwd: String,
 }
 
@@ -17,11 +19,13 @@ impl Shell {
         fs: FileSystem,
         disk: Arc<dyn Disk + Send + Sync>,
         scheduler: Arc<Scheduler>,
+        vps_manager: Arc<Mutex<VpsManager>>,
     ) -> Self {
         Shell {
             fs,
             disk,
             scheduler,
+            vps_manager,
             cwd: "/".to_string(),
         }
     }
@@ -63,6 +67,9 @@ impl Shell {
             "mem" | "memory" => commands::memory::execute(self, args),
             "clearmem" | "freeram" => commands::clearmem::execute(self, args),
             "ps" => commands::ps::execute(self, args),
+            "route" => commands::route::execute(self, args),
+            "browse" => commands::browse::execute(self, args),
+            "vps" => commands::vps::execute(self, args),
             _ => println!("Unknown command: {}", parts[0]),
         }
         false
@@ -80,6 +87,9 @@ impl Shell {
         println!("  clearmem/freeram - Clear RAM memory");
         println!("  ps           - List running tasks");
         println!("  calc <num1> <op> <num2> - Simple calculator");
+        println!("  route <list|add> - Manage network routes");
+        println!("  browse <url> - Browse web pages");
+        println!("  vps <create|list|start|stop|delete> - Manage virtual private servers");
         println!("  clear        - Clear the screen");
         println!("  help         - Show this help");
         println!("  exit         - Exit shell");

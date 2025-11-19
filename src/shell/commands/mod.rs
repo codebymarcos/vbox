@@ -1,3 +1,4 @@
+pub mod browse;
 pub mod calc;
 pub mod cat;
 pub mod cd;
@@ -7,7 +8,9 @@ pub mod ls;
 pub mod memory;
 pub mod mkdir;
 pub mod ps;
+pub mod route;
 pub mod touch;
+pub mod vps;
 
 #[cfg(test)]
 mod tests {

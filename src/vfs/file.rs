@@ -15,6 +15,13 @@ impl File {
         }
     }
 
+    pub fn new_with_content(name: &str, content: String) -> Self {
+        File {
+            name: name.to_string(),
+            content: Arc::new(Mutex::new(content.into_bytes())),
+        }
+    }
+
     pub fn write(&self, data: &[u8]) {
         let mut lock = self.content.lock().unwrap();
         lock.extend_from_slice(data);

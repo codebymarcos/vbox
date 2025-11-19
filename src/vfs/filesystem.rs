@@ -7,6 +7,7 @@ pub struct FileSystem {
     pub root: Arc<Directory>,
     pub proc_dir: Option<Arc<dyn VfsNode>>,
     pub dev_dir: Option<Arc<dyn VfsNode>>,
+    pub network_dir: Option<Arc<dyn VfsNode>>,
 }
 
 impl FileSystem {
@@ -15,6 +16,7 @@ impl FileSystem {
             root: Arc::new(Directory::new("/")),
             proc_dir: None,
             dev_dir: None,
+            network_dir: None,
         }
     }
 
@@ -24,6 +26,10 @@ impl FileSystem {
 
     pub fn set_dev(&mut self, dev: Arc<dyn VfsNode>) {
         self.dev_dir = Some(dev);
+    }
+
+    pub fn set_network(&mut self, network: Arc<dyn VfsNode>) {
+        self.network_dir = Some(network);
     }
 
     fn split_path(path: &str) -> Vec<&str> {
@@ -73,6 +79,19 @@ impl FileSystem {
             if let Some(dev) = &self.dev_dir {
                 let name = path.strip_prefix("/dev/").unwrap();
                 if let Some(dir) = dev.as_any().downcast_ref::<crate::vfs::DevDirectory>() {
+                    return dir.get(name);
+                }
+            }
+        }
+        if path == "/network" {
+            if let Some(network) = &self.network_dir {
+                return Some(network.clone());
+            }
+        }
+        if path.starts_with("/network/") {
+            if let Some(network) = &self.network_dir {
+                let name = path.strip_prefix("/network/").unwrap();
+                if let Some(dir) = network.as_any().downcast_ref::<crate::vfs::NetworkDirectory>() {
                     return dir.get(name);
                 }
             }
