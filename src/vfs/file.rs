@@ -1,5 +1,5 @@
+use super::{NodeType, VfsNode};
 use std::sync::{Arc, Mutex};
-use super::{VfsNode, NodeType};
 
 #[derive(Clone)]
 pub struct File {

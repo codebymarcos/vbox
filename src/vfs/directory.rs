@@ -1,7 +1,7 @@
-use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
-use super::{VfsNode, NodeType};
+use super::{DirectoryOps, NodeType, VfsNode};
 
 #[derive(Clone)]
 pub struct Directory {
@@ -26,12 +26,21 @@ impl Directory {
     }
 
     pub fn list(&self) -> Vec<String> {
-        self.children
-            .lock()
-            .unwrap()
-            .keys()
-            .cloned()
-            .collect()
+        self.children.lock().unwrap().keys().cloned().collect()
+    }
+}
+
+impl DirectoryOps for Directory {
+    fn list(&self) -> Vec<String> {
+        self.list()
+    }
+
+    fn get(&self, name: &str) -> Option<Arc<dyn VfsNode>> {
+        self.get(name)
+    }
+
+    fn add(&self, node: Arc<dyn VfsNode>) {
+        self.add(node);
     }
 }
 
